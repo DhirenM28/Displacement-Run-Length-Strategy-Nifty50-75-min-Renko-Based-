@@ -14,7 +14,10 @@ WINDOW = 10
 BRICK_PCT = 0.0015
 PERIOD = 14
 
+
+
 df_raw=resample_spot
+df_raw.columns=['Open','High','Low','Close']
 df_raw["Datetime"]=df_raw.index
 
 df_raw['date_only'] = df_raw['Datetime'].dt.date
