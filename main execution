@@ -1,0 +1,66 @@
+
+# ============================================================================
+# MAIN EXECUTION
+# ============================================================================
+
+# Prepare data
+for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
+    if col in df_raw.columns:
+        df_raw[col] = df_raw[col].astype(np.float64)
+
+# Calculate indicators
+print("Calculating indicators...")
+df = calculate_brick_size(df_raw)
+df = calculate_displacement_and_run_length(df)
+df = calculate_adx(df)
+df = calculate_atr(df)
+df=  calculate_rsi(df)
+
+# Run backtest
+print("Running backtest...")
+trades_df = run_backtest(df)
+
+# Calculate metrics
+print("Calculating metrics...")
+metrics = calculate_metrics(trades_df)
+
+# Display results
+print("\n" + "="*60)
+print("BACKTEST RESULTS")
+print("="*60)
+print(f"Parameters Used:")
+print(f"  RUN_THRESH: {RUN_THRESH}")
+print(f"  ADX_THRESH: {ADX_THRESH}")
+print(f"  TRAIL_MULT: {TRAIL_MULT}")
+print(f"  WINDOW: {WINDOW}")
+print(f"  BRICK_PCT: {BRICK_PCT}")
+print(f"  PERIOD: {PERIOD}")
+print("\nMetrics:")
+for key, value in metrics.items():
+    print(f"  {key}: {value}")
+print("="*60)
+
+# Save to Excel
+print("\nSaving results to Excel...")
+with pd.ExcelWriter('tradesheet_displacement22.xlsx', engine='openpyxl') as writer:
+    # Save trades
+    trades_df.to_excel(writer, sheet_name='Trades', index=False)
+    
+    # Save metrics
+    metrics_df = pd.DataFrame([metrics])
+    metrics_df.to_excel(writer, sheet_name='Metrics', index=False)
+    
+    # Save parameters
+    params_df = pd.DataFrame([{
+        'RUN_THRESH': RUN_THRESH,
+        'ADX_THRESH': ADX_THRESH,
+        'TRAIL_MULT': TRAIL_MULT,
+        'WINDOW': WINDOW,
+        'BRICK_PCT': BRICK_PCT,
+        'PERIOD': PERIOD
+    }])
+    params_df.to_excel(writer, sheet_name='Parameters', index=False)
+
+print("Results saved to 'tradesheet_displacement.xlsx'")
+print(f"Total trades: {len(trades_df)}")
+print("Done!")
